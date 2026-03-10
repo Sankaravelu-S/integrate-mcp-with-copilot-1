@@ -5,23 +5,30 @@ A super simple FastAPI application that allows students to view and sign up for 
 ## Features
 
 - View all available extracurricular activities
-- Sign up for activities
+- Sign up and unregister students for activities
+- Persist data in a local SQLite database
 
 ## Getting Started
 
 1. Install the dependencies:
 
    ```
-   pip install fastapi uvicorn
+   pip install -r ../requirements.txt
    ```
 
-2. Run the application:
+2. Initialize or migrate the local database schema:
+
+   ```
+   sqlite3 data/school.sqlite < migrations/001_initial_schema.sql
+   ```
+
+3. Run the application:
 
    ```
    python app.py
    ```
 
-3. Open your browser and go to:
+4. Open your browser and go to:
    - API documentation: http://localhost:8000/docs
    - Alternative documentation: http://localhost:8000/redoc
 
@@ -29,22 +36,19 @@ A super simple FastAPI application that allows students to view and sign up for 
 
 | Method | Endpoint                                                          | Description                                                         |
 | ------ | ----------------------------------------------------------------- | ------------------------------------------------------------------- |
-| GET    | `/activities`                                                     | Get all activities with their details and current participant count |
-| POST   | `/activities/{activity_name}/signup?email=student@mergington.edu` | Sign up for an activity                                             |
+| GET    | `/activities`                                                         | Get all activities with details and current participant list |
+| POST   | `/activities/{activity_name}/signup?email=student@mergington.edu`    | Sign up for an activity                                      |
+| DELETE | `/activities/{activity_name}/unregister?email=student@mergington.edu` | Remove a student from an activity                             |
 
 ## Data Model
 
-The application uses a simple data model with meaningful identifiers:
+The application stores data in SQLite (`src/data/school.sqlite`) with these tables:
 
-1. **Activities** - Uses activity name as identifier:
+1. **activities**
+   - `id`, `name`, `description`, `schedule`, `max_participants`
+2. **users**
+   - `id`, `email`
+3. **enrollments**
+   - `id`, `activity_id`, `user_id`
 
-   - Description
-   - Schedule
-   - Maximum number of participants allowed
-   - List of student emails who are signed up
-
-2. **Students** - Uses email as identifier:
-   - Name
-   - Grade level
-
-All data is stored in memory, which means data will be reset when the server restarts.
+The app auto-creates missing tables at startup and seeds default activities when the database is empty.
